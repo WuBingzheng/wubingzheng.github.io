@@ -1,6 +1,8 @@
 # Rust Decimal Crates 对比和压测
 
-## 简介
+![visitors](https://visitor-badge.laobi.icu/badge?page_id=wub.decimal-crates-comparison-zh)
+![](https://gettrack.link/p/Gkr047Pc)
+
 
 众所周知，由于2和10的质因子不相同，二进制小数无法准确表示十进制小数。比如 `f32` 有经典的算术误差：0.1+0.2!=0.3。
 
@@ -16,9 +18,10 @@ Rust生态中有很多decimal crate，设计不同，各有侧重。他们的区
 
 本文目录：
 
-- 前面两节（定点和浮点，固定精度和任意精度）介绍类型特点。并没有什么新东西，熟悉的读者可以跳过。
-- 后面一节（crate的选择）选择并介绍几个decimal crate。
-- 最后一节（压测对比）是本文的重点，压测并对比这几个decimal crate。
+- 前面两节（[定点和浮点](#定点和浮点)，[固定精度和任意精度](#固定精度和任意精度)）介绍类型特点。并没有什么新东西，熟悉的读者可以跳过。
+- 后面一节（[crate的选择](#crate的选择) ）选择并介绍几个decimal crate。
+- 最后一节（[压测对比](#压测对比) ）是本文的重点，压测并对比这几个decimal crate。
+
 
 ## 定点和浮点
 
@@ -57,6 +60,7 @@ NOTE：由于编程语言自带的小数类型（比如C的`float`和`double`，
 
 NOTE：浮点数有一个标准，[IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)，其中定义了二进制浮点数（也就是f32/f64遵循的标准）和十进制浮点数。但是这个标准只是浮点数的 *一种* 实现方式，并不等于全部的浮点数。浮点数也可以选择其他的实现方式。比如这个标准中定义的十进制格式就并不太适合，大部分decimal crate都不遵循这个标准。
 
+
 ## 固定精度和任意精度
 
 *[Fixed-precision](https://en.wikipedia.org/wiki/Fixed-precision_arithmetic)* vs
@@ -65,6 +69,7 @@ NOTE：浮点数有一个标准，[IEEE 754](https://en.wikipedia.org/wiki/IEEE_
 首先明确下这里“精度 precision”这个词的含义。这个词有两个冲突的含义：小数数字的位数 和 有效数字的位数。比如对于值1.23，其小数数字有2位，有效数字是3位。这两个含义都在被广泛使用着。比如在 [std::fmt](https://doc.rust-lang.org/std/fmt/index.html#precision) 中使用的是前者含义；而在这里（Fixed-precision vs Arbitrary-precision）使用的是后者含义。这个是[标准的叫法](https://en.wikipedia.org/wiki/Fixed-precision_arithmetic)，但是却很容易引起歧义。Fixed-precision 经常就被误认为是小数精度，从而跟 Fixed-point 混淆。为了避免歧义，我们改用 Fixed-size 来代替 Fixed-precision。
 
 顾名思义，Fixed-size 是使用固定个数的integer（一个或多个）。而 Arbitrary-precision 根据需求使用任意个数的integer，一方面可以向左边扩展，避免溢出；另一方面可以向右边扩展，避免精度丢失。显然这就需要从堆上分配内存，所以类型不是 `Copy` 的，crate也不是 `no-alloc` 的。而且所有的运算也会很慢。如果不是有明确的需求，一般优先选择 Fixed-size。
+
 
 ## crate的选择
 
@@ -174,19 +179,20 @@ Fixed-point | Fixed-size
 +----------------------------+
 ```
 
-这个crate还有一个实现细节上的差别，使用有符号的mantissa。而本文中选择的其他crate都是把符号位和mantissa区分来处理的。这个区别也来自浮点和定点，但这里就不详细介绍了。只需要说明的是，只有这个crate的mantissa少了1位，只有127-bit。
+这个crate还有一个实现细节上的差别，使用有符号的mantissa。而本文中选择的其他crate都是把符号位和mantissa区分来处理的。这个区别也来自浮点和定点，但这里就不详细介绍了。只需要说明的是，这个crate的mantissa少了1位，只有127-bit。
 
 ### 内存对比
 
-这里再从内存使用率的角度做对比。我们把除了mantissa以外的信息称为meta信息，那么上述几个crate的元信息占用的大小如下：
+这里再从内存使用率的角度做对比。我们把除了mantissa以外的信息称为meta信息，那么上述几个crate的meta信息占用的大小如下：
 
-- bigdecimal：5个word，40 byte
-- fastnum：8 byte
-- rust_decimal：4 byte
+- bigdecimal：5个Word，40 Byte
+- fastnum：8 Byte
+- rust_decimal：4 Byte
 - decimax：6 bit（仅以128-bit有符号类型为例）
 - primitive_fixed_point_decimal：1 bit
 
 剧透：这个排名跟接下来的压测排名是一致的。
+
 
 ## 压测对比
 
@@ -214,11 +220,13 @@ Fixed-point | Fixed-size
 
 减法和加法是一样的，这里不在重复测试。
 
-两个操作数的选择。在不同的压测case中，会根据各自的需求来选择两个操作数的scale，参见下面的详细说明。而操作数的mantissa是统一的（准确说，是加法的两个操作数、乘法的两个操作数、除法的被除数，是统一的），都是10的幂，按照指数级增长。比如图中横坐标3，表示操作数是1e3。由于不同crate的mantissa的位数不一样，所能表示的数字范围也就不一样，对应到图中每根线的长度也就不一样，具体来说：
+两个操作数的选择。在不同的压测case中，会根据各自的需求来选择两个操作数的scale，参见下面的详细说明。而操作数的mantissa是统一的（准确说，是加法的两个操作数、乘法的两个操作数、除法的被除数，是统一的），都是10的幂，按照指数级增长。比如图中横坐标3，表示操作数是1e3。
+
+由于不同crate的mantissa的位数不一样，所能表示的数字范围也就不一样，对应到图中每根线的长度也就不一样，具体来说：
 
 - `bigdecimal` 有任意精度，这里屈尊只使用了128bit，对应38位十进制数字； 
 - `fastnum:128` 有完整的128bit mantissa，也有38位；
-- `prim-fpdec:128` 有127bit的mantissa，不过也是38位，跟上面的一样长；
+- `prim-fpdec:128` 有127bit的mantissa，不过转换成十进制也是38位，跟上面的一样长；
 - `decimax:128` 有122bit的mantissa，对应36位；
 - `rust_decimal` 有96bit的mantissa，在128-bit类型中是最短的，只有28位；
 - 其余的64-bit类型类似。
@@ -377,17 +385,18 @@ Fixed-point | Fixed-size
 
 `bigdecimal` << `fastnum` < `rust_decimal` < `decimax` < `primitive_fixed_point_decimal`
 
-另外，Floating-point 的性能可能依赖mantissa和scale。而 Fixed-point 相对而言是固定的，可预期的，上面图中的表现基本都是水平线。
+另外，Floating-point 的运算路径依赖具体的操作数，性能表现也就不是很稳定。而 Fixed-point 相对而言是固定的、可预期的，上面图中的表现基本都是水平线。
 
 需要再次说明的是，这几个crate侧重点各不相同，只做性能对比并不公平。
+
 
 ## 总结
 
 本文介绍了decimal crate的几个类型，并选取几个crate，做压测和对比。
 
-由此，推荐方案如下：
+基于此，我们给出如下推荐方案：
 
 - 如果需要动态的任意精度，只能选择 `bigdecimal`，代价是不能`Copy`并且非常慢。
 - 如果需要超过128-bit的类型，只能选择 `fastnum`。这里并没有测试超过128-bit类型的性能，但应该不会很快。有兴趣的读者可以修改本项目代码进行压测。
 - 如果需要固定的小数精度，只能选择 `primitive_fixed_point_decimal`。虽然使用起来比浮点类型略微复杂，但会带来更高和更稳定的性能。
-- 如果对上面几点都没有要求，而只希望能准确表示十进制小数，可以选择 `rust_decimal` 或 `decimax`。前者有更好的生态，后者有更快的速度。
+- 如果对上面几点都没有要求，而只希望能准确表示十进制小数，可以选择 `rust_decimal` 或 `decimax`，简单方便。前者有更好的生态，后者有更快的速度。
