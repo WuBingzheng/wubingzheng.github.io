@@ -3,6 +3,9 @@
 ![visitors](https://visitor-badge.laobi.icu/badge?page_id=wub.decimal-crates-comparison-en)
 ![](https://gettrack.link/p/38komsw3)
 
+> My English is not very good, so this article was translated with the help of AI.
+> Here is the [Chinese version](https://wubingzheng.github.io/zh/Decimal-Crates-Comparison.html).
+
 As is well known, because 2 and 10 do not share the same prime factors, binary
 fractions cannot represent decimal fractions exactly. For example, `f32` has
 the classic arithmetic error: `0.1 + 0.2 != 0.3`.
