@@ -7,7 +7,7 @@
 > Here is the [Chinese version](https://wubingzheng.github.io/zh/Decimal-Crates-Comparison.html).
 
 As is well known, because 2 and 10 do not share the same prime factors, binary
-fractions cannot represent decimal fractions exactly. For example, `f32` has
+fractions cannot represent decimal fractions exactly. For example, `f64` has
 the classic arithmetic error: `0.1 + 0.2 != 0.3`.
 
 Some application scenarios, such as finance, require exact representation of
