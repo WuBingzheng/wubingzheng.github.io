@@ -452,7 +452,7 @@ For 128-bit types:
 - `fastnum:128` is the slowest
 - `rust_decimal` comes next
 - `decimax` follows
-- `prim-fpdec:128` is the fastest, approaching the measurement limit (criterion seems unable to measure below about 0.35 ns)
+- `prim-fpdec:128` is the fastest
 
 The first three are floating-point decimals, so they must first check whether
 the scales are equal before addition. This check itself is relatively expensive
@@ -581,7 +581,7 @@ First, consider the post-jump behavior for 128-bit types:
 Now consider the pre-jump region:
 
 - `fastnum:128` and `rust_decimal` are both stable before their jumps (`x=19` and `x=14` respectively), though `fastnum` survives longer.
-- `decimax` and `prim-oob-fpdec:128` are not only stable but extremely fast before their jumps, appearing nearly as fast as `f64` (~0.35ns).
+- `decimax` and `prim-oob-fpdec:128` are not only stable but extremely fast before their jumps.
 
 Careful readers may notice that `primitive_fixed_point_decimal` appears as two variants:
 `prim-oob-fpdec:128` and `prim-const-fpdec:128`. Only the former was discussed earlier.

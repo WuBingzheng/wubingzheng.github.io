@@ -251,7 +251,7 @@ Fixed-point | Fixed-size
 
 这样就清晰多了。
 
-先看128-bit的：`fastnum:128`是最慢的，`rust_decimal`其次，`decimax`再次，`prim-fpdec:128`最快并且快到了极限（似乎 criterion 能测出的最小时间粒度就是0.35纳秒）。
+先看128-bit的：`fastnum:128`是最慢的，`rust_decimal`其次，`decimax`再次，`prim-fpdec:128`最快。
 前面3个是浮点的，在执行加法前需要先判断两个操作数的scale是否相等。这个判断本身就很慢，拉慢了整体的加法速度。而`prim-fpdec:128`是定点的，流程就是两个整数的加法，几乎就是一条CPU指令，所以快到飞起。
 
 再看64-bit的：`fastnum:64`比`fastnum:128`略快；`decimax:64`跟`decimax:128`一样；`prim-fpdec:64`跟`prim-fpdec:128`一样。
@@ -316,7 +316,7 @@ Fixed-point | Fixed-size
 再来看跳变之前的部分。这就需要一些眼力了。
 
 - `fastnum:128` 和 `rust_decimal` 在跳变之前（分别在x=19和x=14）都很稳定，只不过前者跳变更晚些。
-- `decimax` 和 `prim-oob-fpdec:128` 在跳变之前（分别是x=15和x=19），不仅稳定，而且非常快，快到了极限，看上去跟 `f64`一样快了（350ns）。
+- `decimax` 和 `prim-oob-fpdec:128` 在跳变之前（分别是x=15和x=19），不仅稳定，而且非常快。
 
 如果你够细，可以发现这里的 `primitive_fixed_point_decimal` crate分成了两个类型：`prim-oob-fpdec:128`和`prim-const-fpdec:128`，并且上面只介绍了前者而没有后者。这也是 Fixed-point 的原因。
 本节最开始介绍的乘法流程（mantissa相乘；scale相加）是针对浮点类型的。而对于定点类型，由于乘法结果的scale是在编程时指定的，所以在两个操作数scale相加后，还需要再调整到目标scale（类似上面讲到的scale相加溢出的情况）。
